@@ -1,10 +1,13 @@
 // Filename: main.js
-// Description: 导航切换 + 懒加载模块 + 动态注册模块 JS 初始化 + 更新面包屑（错误安全）
+// Path: frontend/js/main.js
+// Description: 模块导航逻辑控制 + 动态 HTML 懒加载 + JS 初始化绑定（支持 upload/visual 模块）
 // Author: msy
 // Date: 2025
 
-const DEFAULT_MODULE_ID = 'dashboard';  // 默认激活模块
+// 默认激活模块 ID
+const DEFAULT_MODULE_ID = 'dashboard';
 
+// 模块 ID 到名称的映射，用于面包屑与标题
 const moduleMap = {
   dashboard: '系统总览',
   monitor: '实时监听分析',
@@ -13,7 +16,7 @@ const moduleMap = {
   log: '监听日志报告'
 };
 
-// 每个模块的 JS 初始化逻辑注册（带错误捕获）
+// 各模块 JS 初始化函数（使用 import 动态加载）
 const moduleInit = {
   dashboard: async () => {
     try {
@@ -57,15 +60,18 @@ const moduleInit = {
   }
 };
 
-// 已加载模块缓存
+// 已加载模块缓存集合，避免重复加载
 const loaded = new Set();
 
-// 模块加载与激活逻辑
-async function loadModule(id) {
+/**
+ * 加载模块 HTML 内容并激活模块
+ * @param {string} id - 模块 ID
+ */
+export async function loadModule(id) {
   const section = document.getElementById(id);
   if (!section) return;
 
-  // 首次加载模块 HTML 与 JS
+  // 首次加载 HTML 结构
   if (!loaded.has(id)) {
     try {
       const res = await fetch(`/components/${id}.html`);
@@ -73,7 +79,7 @@ async function loadModule(id) {
       section.innerHTML = html;
       loaded.add(id);
 
-      // 模块 JS 初始化（如果存在）
+      // 模块 JS 初始化调用（如果存在）
       const initFunc = moduleInit[id];
       if (initFunc) await initFunc();
     } catch (err) {
@@ -82,7 +88,7 @@ async function loadModule(id) {
     }
   }
 
-  // 激活该模块，隐藏其他模块
+  // 激活当前模块，隐藏其他模块
   document.querySelectorAll('section.module').forEach(s => s.classList.remove('active'));
   section.classList.add('active');
 
@@ -91,28 +97,28 @@ async function loadModule(id) {
   document.getElementById('breadcrumb-box').innerHTML = `<span class="breadcrumb-item active">${title}</span>`;
 }
 
-// 左侧导航栏点击绑定
+/**
+ * 初始化左侧导航栏点击事件
+ */
 function initSidebarNavigation() {
   const links = document.querySelectorAll('.sidebar a');
-
   links.forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
-
       const id = link.getAttribute('data-module');
       if (!id) return;
 
-      // 高亮当前导航项
+      // 设置当前高亮
       links.forEach(l => l.classList.remove('active'));
       link.classList.add('active');
 
-      // 加载模块
+      // 加载对应模块
       loadModule(id);
     });
   });
 }
 
-// 页面加载后初始化
+// 页面加载完成后执行默认模块激活
 document.addEventListener('DOMContentLoaded', () => {
   initSidebarNavigation();
   loadModule(DEFAULT_MODULE_ID);

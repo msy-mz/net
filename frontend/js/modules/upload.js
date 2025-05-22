@@ -1,5 +1,11 @@
 // Filename: upload.js
 // Path: frontend/js/modules/upload.js
+// Description: 绑定上传表单事件，调用后端推理接口，反馈推理状态
+// Author: msy
+// Date: 2025
+
+import { showModule } from '../main.js';
+import { initFigures } from './visual.js';
 
 export function initUpload() {
   const form = document.getElementById('upload-form');
@@ -13,10 +19,7 @@ export function initUpload() {
     e.preventDefault();
 
     const fileInput = document.getElementById('pcap-file');
-    const modelSelect = document.getElementById('model-select');
     const file = fileInput.files[0];
-    const model = modelSelect.value;
-
     if (!file) {
       alert('请选择一个 .pcap 文件');
       return;
@@ -28,25 +31,38 @@ export function initUpload() {
     detailBox.innerHTML = '';
 
     const formData = new FormData();
-    formData.append('pcap', file);
-    formData.append('model', model);
+    formData.append('file', file);
 
     try {
-      // ⚠️ 替换成你的真实 Flask 接口
-      const res = await fetch('/api/upload', {
+      const uploadResp = await fetch('/upload_pcap', {
         method: 'POST',
         body: formData
       });
+      const uploadData = await uploadResp.json();
 
-      const data = await res.json();
+      if (uploadData.status !== 'success') {
+        statusBox.textContent = '上传失败';
+        detailBox.textContent = uploadData.message || '未知错误';
+        return;
+      }
 
-      statusBox.textContent = '分析完成';
-      detailBox.innerHTML = `
-        <p><strong>预测标签：</strong> ${data.label}</p>
-        <p><strong>置信度：</strong> ${data.confidence}</p>
-      `;
+      statusBox.textContent = '上传成功，正在推理...';
+      const inferResp = await fetch('/run_infer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pcap_path: uploadData.pcap_path })
+      });
+      const inferData = await inferResp.json();
+
+      statusBox.textContent = inferData.message;
+      detailBox.textContent = '';
+
+      // 跳转到可视化模块
+      showModule("visual");
+      setTimeout(initFigures, 500);
+
     } catch (err) {
-      console.error('上传失败', err);
+      console.error('上传或推理失败', err);
       statusBox.textContent = '❌ 上传或分析失败';
       detailBox.innerHTML = `<pre>${err}</pre>`;
     }

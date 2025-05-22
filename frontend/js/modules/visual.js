@@ -1,76 +1,59 @@
 // Filename: visual.js
 // Path: frontend/js/modules/visual.js
+// Description: 图像展示模块（专业排版 + 统计摘要 + 中文标识）
+// Author: msy
+// Date: 2025
 
-import Chart from 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.esm.js';
+export async function initFigures() {
+  const vis = document.getElementById("vis-area");
+  if (!vis) return;
 
-let chart = null;
+  // 从 summary.json 获取统计数据
+  const summaryResp = await fetch('/result/inf/infer/summary.json');
+  const summary = await summaryResp.json();
+  const total = summary.total_flows;
+  const abnormal = summary.abnormal_flows;
 
-function randomClusterPoints(num, label, color) {
-  return Array.from({ length: num }, () => ({
-    x: Math.random() * 10 + (label === 'malicious' ? 0 : 10),
-    y: Math.random() * 10,
-    label,
-    backgroundColor: color
-  }));
-}
+  vis.innerHTML = `
+    <h4 class="mb-3">📊 推理分析报告概览</h4>
+    <div class="alert alert-info">
+      <p class="mb-1">总流量数：<strong>${total}</strong></p>
+      <p class="mb-1">异常流量数：<strong>${abnormal}</strong></p>
+      <p class="mb-0">分类分布与频谱特征如下：</p>
+    </div>
 
-function drawClusterChart(model, source) {
-  const normal = randomClusterPoints(40, 'normal', 'rgba(54,162,235,0.6)');
-  const malicious = randomClusterPoints(30, 'malicious', 'rgba(255,99,132,0.7)');
-  const data = [...normal, ...malicious];
+    <div class="row">
+      <div class="col-md-6 mb-4">
+        <div class="card p-3 shadow-sm">
+          <h6 class="mb-2">分类分布图</h6>
+          <img src="/result/inf/infer/label_distribution.png" class="img-fluid rounded" />
+          <p class="text-muted mt-2 small">展示各类流量在推理结果中的数量分布情况。</p>
+        </div>
+      </div>
+      <div class="col-md-6 mb-4">
+        <div class="card p-3 shadow-sm">
+          <h6 class="mb-2">PCA 聚类图</h6>
+          <img src="/result/inf/infer/feature_vis/global_spectrum/pca_spectrum_clusters.png" class="img-fluid rounded" />
+          <p class="text-muted mt-2 small">将高维频谱特征降维至二维空间以展示聚类效果。</p>
+        </div>
+      </div>
+    </div>
 
-  const ctx = document.getElementById('cluster-chart')?.getContext('2d');
-  if (!ctx) return;
-
-  if (chart) {
-    chart.destroy();
-  }
-
-  chart = new Chart(ctx, {
-    type: 'scatter',
-    data: {
-      datasets: [
-        {
-          label: '正常流量',
-          data: data.filter(p => p.label === 'normal'),
-          backgroundColor: 'rgba(54,162,235,0.6)'
-        },
-        {
-          label: '恶意流量',
-          data: data.filter(p => p.label === 'malicious'),
-          backgroundColor: 'rgba(255,99,132,0.7)'
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: 'top' },
-        title: {
-          display: true,
-          text: `模型：${model.toUpperCase()}｜来源：${source === 'upload' ? '上传' : '监听'}`
-        }
-      },
-      scales: {
-        x: { beginAtZero: true },
-        y: { beginAtZero: true }
-      }
-    }
-  });
-}
-
-export function initFigures() {
-  const modelSelect = document.getElementById('global-model-select');
-  const sourceSelect = document.getElementById('source-select');
-
-  function render() {
-    const model = modelSelect.value;
-    const source = sourceSelect.value;
-    drawClusterChart(model, source);
-  }
-
-  modelSelect.addEventListener('change', render);
-  sourceSelect.addEventListener('change', render);
-
-  render();  // 初次渲染
+    <div class="row">
+      <div class="col-md-6 mb-4">
+        <div class="card p-3 shadow-sm">
+          <h6 class="mb-2">正常 vs 异常频谱图</h6>
+          <img src="/result/inf/infer/feature_vis/global_spectrum/normal_vs_abnormal_spectrum.png" class="img-fluid rounded" />
+          <p class="text-muted mt-2 small">分别绘制正常与异常流量的平均频谱曲线，用于对比差异。</p>
+        </div>
+      </div>
+      <div class="col-md-6 mb-4">
+        <div class="card p-3 shadow-sm">
+          <h6 class="mb-2">谱熵分布图</h6>
+          <img src="/result/inf/infer/feature_vis/global_spectrum/spectral_entropy_hist.png" class="img-fluid rounded" />
+          <p class="text-muted mt-2 small">谱熵衡量频谱平坦程度，可用于辅助判断异常流。</p>
+        </div>
+      </div>
+    </div>
+  `;
 }

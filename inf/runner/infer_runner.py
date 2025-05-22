@@ -391,23 +391,24 @@ for record in detailed_results:
         normal_spectra.append(spectrum)
 
 # ========== 正常 vs 异常频谱均值图 ==========
-if normal_spectra and abnormal_spectra:
+plt.figure(figsize=(8, 4))
+if normal_spectra:
     mean_normal = np.mean(np.stack(normal_spectra), axis=0)
-    mean_abnormal = np.mean(np.stack(abnormal_spectra), axis=0)
-
     norm_curve = np.mean(mean_normal, axis=0)
-    abnorm_curve = np.mean(mean_abnormal, axis=0)
-
-    plt.figure(figsize=(8, 4))
     plt.plot(norm_curve, label='Normal', color='green')
+if abnormal_spectra:
+    mean_abnormal = np.mean(np.stack(abnormal_spectra), axis=0)
+    abnorm_curve = np.mean(mean_abnormal, axis=0)
     plt.plot(abnorm_curve, label='Abnormal', color='red')
-    plt.title("Mean Spectrum: Normal vs Abnormal")
-    plt.xlabel("Frequency Bin")
-    plt.ylabel("Mean Magnitude (Across Channels)")
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(os.path.join(global_spectrum_dir, 'normal_vs_abnormal_spectrum.png'))
-    plt.close()
+
+plt.title("Mean Spectrum: Normal vs Abnormal")
+plt.xlabel("Frequency Bin")
+plt.ylabel("Mean Magnitude (Across Channels)")
+plt.legend()
+plt.tight_layout()
+plt.savefig(os.path.join(global_spectrum_dir, 'normal_vs_abnormal_spectrum.png'))
+plt.close()
+
 
 # ========== 谱熵直方图 ==========
 plt.figure(figsize=(8, 4))
