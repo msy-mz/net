@@ -12,7 +12,7 @@ from inf.data.loader import load_data, build_dataloaders
 from inf.model.train import train_model
 from inf.model.evaluate import evaluate_model
 
-DEFAULT_CONFIG_PATH = "inf/config/ustc2016/tcp/multiclass/train.yaml"
+DEFAULT_CONFIG_PATH = "inf/runner/config/ustc2016/tcp/multiclass/train.yaml"
 
 def run_train(config):
     device = config.get("device", "cuda")

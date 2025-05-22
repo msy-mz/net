@@ -8,15 +8,17 @@ import os
 import json
 
 # 通用保存函数：保存 bin 文件 + meta.json
-def save_bin_payloads(flows, output_dir, is_valid_fn=None, max_payload_len=1024):
+def save_bin_payloads(flows, output_dir, is_valid_fn=None, max_payload_len=1024, max_files=None):
     os.makedirs(output_dir, exist_ok=True)
     bin_files = []
     meta = {}
     filtered, total_payload = 0, 0
 
     for idx, (fid, pkt_list) in enumerate(flows.items()):
+        if max_files is not None and len(bin_files) >= max_files:
+            break
         pkt_list.sort(key=lambda x: x[0])
-        payload = b"".join([p for _, p in pkt_list])
+        payload = b"".join([p for _, p, _ in pkt_list])
         if len(payload) == 0:
             continue
 
@@ -30,12 +32,25 @@ def save_bin_payloads(flows, output_dir, is_valid_fn=None, max_payload_len=1024)
         with open(fpath, "wb") as f:
             f.write(payload)
 
-        ts = pkt_list[0][1] if len(pkt_list[0]) > 1 else None
+        ts = pkt_list[0][2] if len(pkt_list[0]) > 2 else None
+        # 解析 fid 格式为：dst-ip - src-ip - dport - sport - proto__index
+        fid_main = fid.split('__')[0]
+        try:
+            dst_ip, src_ip, dport, sport, proto = fid_main.split('-')
+        except ValueError:
+            dst_ip = src_ip = dport = sport = proto = 'unknown'
+
         meta[fname] = {
             "fid": fid,
             "timestamp": ts,
-            "payload_len": len(payload)
+            "payload_len": len(payload),
+            "src_ip": src_ip,
+            "dst_ip": dst_ip,
+            "src_port": int(sport) if sport.isdigit() else sport,
+            "dst_port": int(dport) if dport.isdigit() else dport,
+            "protocol": int(proto) if proto.isdigit() else proto
         }
+
         bin_files.append(fpath)
         total_payload += len(payload)
 

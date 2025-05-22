@@ -7,7 +7,7 @@
 import torch
 from user.model.encoder import FingerprintEncoder
 from user.model.tcn import IDTCNModel
-from user.infer.infer_identity import IdentityClassifier
+from user.infer.infer import IdentityClassifier
 
 # 加载训练好的模型结构与参数
 def load_model_components(model_path, config):

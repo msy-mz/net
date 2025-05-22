@@ -1,8 +1,7 @@
 # Filename: tcp.py
 # Path: inf/payload/extract/tcp.py
 # Description: 
-#   TCP 协议流量提取模块，支持多流聚合、截断保存，并生成 meta.json。
-#   保留全部 TCP 流（不做协议内容筛选），依赖 base 工具模块完成保存与统计。
+#   TCP 协议流量提取模块，支持最大流数量限制，聚合、截断保存并生成 meta.json。
 # Author: msy
 # Date: 2025
 
@@ -17,10 +16,8 @@ from inf.payload.extract.base import save_bin_payloads
 def accept_all(_payload: bytes) -> bool:
     return True
 
-# 提取 TCP 流（聚合、去重、方向无关）
-def extract_flows_from_pcap(pcap_path, 
-                            split_gap_threshold=30.0, 
-                            max_flow_duration=300.0):
+# 提取 TCP 流（聚合、去重、方向无关，支持最大流限制）
+def extract_flows_from_pcap(pcap_path, split_gap_threshold=30.0, max_flow_duration=300.0, max_flows=None):
     flows = defaultdict(list)
     seq_seen = defaultdict(set)
 
@@ -40,6 +37,9 @@ def extract_flows_from_pcap(pcap_path,
     flow_count = defaultdict(int)
 
     for pkt_data, pkt_metadata in RawPcapReader(pcap_path):
+        if max_flows is not None and len(flows) >= max_flows:
+            break
+
         try:
             if use_sll:
                 pkt = CookedLinux(pkt_data)
@@ -85,12 +85,12 @@ def extract_flows_from_pcap(pcap_path,
 
     return flows
 
-# TCP 提取主函数（返回 bin 文件路径 + stats）
-def extract_with_stats(pcap_path, output_dir, max_len=1024):
-    flows = extract_flows_from_pcap(pcap_path)
-    return save_bin_payloads(flows, output_dir, is_valid_fn=accept_all, max_payload_len=max_len)
+# 主函数：提取并保存 bin 和 meta（支持最大流限制）
+def extract_with_stats(pcap_path, output_dir, max_len=1024, max_flows=None):
+    flows = extract_flows_from_pcap(pcap_path, max_flows=max_flows)
+    return save_bin_payloads(flows, output_dir, is_valid_fn=accept_all, max_payload_len=max_len, max_files=max_flows)
 
-# 简化版，仅返回 bin 文件路径
-def extract_payloads_from_pcap(pcap_path, output_dir, max_len=1024):
-    bin_files, _ = extract_with_stats(pcap_path, output_dir, max_len=max_len)
+# 封装接口：仅返回 bin 路径（用于推理流程）
+def extract_payloads_from_pcap(pcap_path, output_dir, max_len=1024, max_flows=None):
+    bin_files, _ = extract_with_stats(pcap_path, output_dir, max_len=max_len, max_flows=max_flows)
     return bin_files
