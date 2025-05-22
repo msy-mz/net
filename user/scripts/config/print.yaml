@@ -1,0 +1,10 @@
+# Filename: print.yaml
+# Path: user/config/print.yaml
+# Description: 指纹特征提取参数配置
+# Author: msy
+# Date: 2025
+
+pcap_path: data/pcap/ustc2016/Malware/Cridex.pcap
+output_csv: data/csv/print/ustc2016/Malware/Cridex.csv
+label: null
+max_packets: None

@@ -1,0 +1,50 @@
+<!-- Filename: monitor.html -->
+<!-- 实时监听分析模块 UI 布局升级版 -->
+
+<h2 class="mb-4">实时监听分析</h2>
+
+<div class="row g-4">
+  <!-- 状态卡片 -->
+  <div class="col-md-3">
+    <div class="card text-bg-success shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">系统状态</h5>
+        <p class="card-text fs-5 fw-bold" id="status-text">监听中</p>
+        <button id="toggle-btn" class="btn btn-light btn-sm">暂停监听</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">当前连接数</h5>
+        <p class="fs-4 text-primary" id="conn-count">--</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">异常占比</h5>
+        <p class="fs-4 text-danger" id="abn-ratio">--%</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">累计流量</h5>
+        <p class="fs-4 text-dark" id="packet-total">--</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 折线图 -->
+<div class="mt-4">
+  <h5 class="mb-2">异常流量趋势图（最近 20 秒）</h5>
+  <canvas id="realtime-chart" height="120"></canvas>
+</div>

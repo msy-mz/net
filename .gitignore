@@ -1,0 +1,11 @@
+data/
+nist/nist_result
+nist/bfg.jar
+nist/assess
+nist/experiments/
+nist/include/
+nist/obj/
+nist/src/
+nist/templates/
+**/__pycache__/
+ja3/

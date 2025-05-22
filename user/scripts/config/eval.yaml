@@ -1,0 +1,18 @@
+# Filename: eval.yaml
+# Path: config/eval.yaml
+# Description: 评估阶段配置参数
+# Author: msy
+# Date: 2025
+
+model_path: checkpoints/identity_model.pt
+
+input_dim: 64
+encoder_hidden_dim: 128
+encoded_dim: 64
+tcn_hidden_dim: 128
+embed_dim: 128
+num_classes: 10
+tcn_levels: 3
+kernel_size: 3
+
+batch_size: 64

@@ -1,0 +1,30 @@
+<!-- Filename: visual.html -->
+<h2 class="mb-3">可视化分析</h2>
+<p class="text-muted">支持切换模型与来源，显示降维分布图与聚类分析图。</p>
+
+<div class="row g-3 mb-4">
+  <div class="col-auto">
+    <label class="form-label">选择模型：</label>
+    <select class="form-select form-select-sm" id="global-model-select">
+      <option value="ft">FT-Encoder</option>
+      <option value="id">ID-TCN</option>
+      <option value="fusion" selected>FT-IDNet++</option>
+    </select>
+  </div>
+  <div class="col-auto">
+    <label class="form-label">数据来源：</label>
+    <select class="form-select form-select-sm" id="source-select">
+      <option value="upload" selected>上传分析结果</option>
+      <option value="monitor">实时监听窗口</option>
+    </select>
+  </div>
+</div>
+
+<div class="card shadow-sm p-3 mb-3">
+  <canvas id="cluster-chart" height="200"></canvas>
+</div>
+
+<div class="small text-muted">
+  <strong>说明：</strong>
+  红色代表恶意流量，蓝色为正常样本，不同类别可能聚类于不同区域。
+</div>

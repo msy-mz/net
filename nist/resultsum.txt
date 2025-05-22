@@ -1,0 +1,17 @@
+{
+	"Frequency":0.176680,
+	"BlockFrequency":0.821336,
+	"CumulativeSums":0.341727,
+	"Runs":0.508703,
+	"LongestRun":0.083161,
+	"Rank":0.481248,
+	"FFT":0.615228,
+	"NonOverlappingTemplate":0.118330,
+	"OverlappingTemplate":0.501207,
+	"Universal":0.000000,
+	"ApproximateEntropy":0.000000,
+	"RandomExcursions":0.000000,
+	"RandomExcursionsVariant":0.000000,
+	"Serial":0.365561,
+	"LinearComplexity":0.886600
+}
