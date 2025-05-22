@@ -1,4 +1,5 @@
 data/
+nist/data
 nist/nist_result
 nist/bfg.jar
 nist/assess
