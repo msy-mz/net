@@ -1,4 +1,9 @@
 <!-- Filename: dashboard.html -->
+<!-- Path: frontend/components/dashboard.html -->
+<!-- Description: 系统总览页面 -->
+<!-- Author: msy -->
+<!-- Date: 2025 -->
+
 <h2 class="mb-3">系统总览</h2>
 <p class="text-muted">欢迎使用 FT-IDNet++ 网络流量智能检测平台。以下是当前系统运行状态概览。</p>
 
@@ -38,7 +43,7 @@
   </div>
 </div>
 
-<!-- 系统统计 -->
+<!-- 系统统计卡片 -->
 <div class="row g-4 mb-4">
   <div class="col-md-4">
     <div class="card shadow-sm">
@@ -49,7 +54,6 @@
       </div>
     </div>
   </div>
-
   <div class="col-md-4">
     <div class="card shadow-sm">
       <div class="card-body">
@@ -59,7 +63,6 @@
       </div>
     </div>
   </div>
-
   <div class="col-md-4">
     <div class="card shadow-sm">
       <div class="card-body">
@@ -75,7 +78,7 @@
   </div>
 </div>
 
-<!-- 流量趋势图 -->
+<!-- 异常流量趋势图 -->
 <div class="card shadow-sm p-3">
   <h6 class="mb-3">今日异常流量趋势图</h6>
   <canvas id="trend-chart" height="120"></canvas>

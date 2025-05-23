@@ -10,3 +10,6 @@ nist/src/
 nist/templates/
 **/__pycache__/
 ja3/
+output/
+result/
+pcap_inputs/

@@ -13,7 +13,7 @@ from sklearn.metrics import classification_report, roc_auc_score
 from sklearn.utils.multiclass import unique_labels
 from sklearn.preprocessing import label_binarize
 
-from inf.model.loader import load_model_weights
+from inf.model.model_loader import load_model_weights
 from inf.model.report_utils import format_classification_report,save_classification_report
 from inf.model.visualization import visualize_all
 from inf.model.error_analysis import show_misclassified

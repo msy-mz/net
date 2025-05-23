@@ -1,0 +1,6 @@
+pcap_path: /home/msy/net/pcap_inputs/BitTorrent.pcap
+output_dir: result/inf/infer/
+max_payload_len: 1024
+config_path: inf/runner/config/ustc2016/tcp/multiclass/train.yaml
+normal_class_range: [0, 8]
+max_flows: 30  # 控制最大提取流数量（None 表示不限制）

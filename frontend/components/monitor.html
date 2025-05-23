@@ -1,5 +1,8 @@
 <!-- Filename: monitor.html -->
-<!-- 实时监听分析模块 UI 布局升级版 -->
+<!-- Path: frontend/components/monitor.html -->
+<!-- Description: 实时监听分析页面（含状态卡片、趋势图与最近日志） -->
+<!-- Author: msy -->
+<!-- Date: 2025 -->
 
 <h2 class="mb-4">实时监听分析</h2>
 
@@ -47,4 +50,23 @@
 <div class="mt-4">
   <h5 class="mb-2">异常流量趋势图（最近 20 秒）</h5>
   <canvas id="realtime-chart" height="120"></canvas>
+</div>
+
+<!-- 最近推理日志表 -->
+<div class="mt-5">
+  <h5 class="mb-3">最近推理记录（最新 5 条）</h5>
+  <div class="table-responsive">
+    <table class="table table-bordered table-sm align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>时间</th>
+          <th>源 IP:端口</th>
+          <th>目标 IP:端口</th>
+          <th>预测标签</th>
+          <th>是否异常</th>
+        </tr>
+      </thead>
+      <tbody id="log-table-body"></tbody>
+    </table>
+  </div>
 </div>

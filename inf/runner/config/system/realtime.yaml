@@ -1,0 +1,16 @@
+# Filename: realtime.yaml
+# Path: config/system/realtime.yaml
+# Description: 实时抓包与推理参数配置文件
+# Author: msy
+# Date: 2025
+
+# 网卡与抓包过滤
+interface: enp4s0              # 实际使用的网卡名称（例如 eth0、ens33）
+bpf_filter: tcp port 80        # 抓包过滤表达式，可改为 tcp 以捕获所有 TCP 流量
+
+# 实时日志输出配置
+log_output_path: /tmp/realtime_log.json   # 前端可读取的实时推理结果日志
+max_log_entries: 30                       # 缓存展示的最大流条目数
+
+# 频谱特征输出配置
+spectrum_output_dir: /tmp/realtime_spectrum  # 每条流保存一个 .json 特征文件

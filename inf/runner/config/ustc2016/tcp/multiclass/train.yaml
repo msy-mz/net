@@ -1,5 +1,5 @@
 # Filename: train.yaml
-# Path: inf/config/ustc2016/tcp/multiclass/train.yaml
+# Path: inf/runner/config/ustc2016/tcp/multiclass/train.yaml
 # Description:
 #   FT-Encoder++ 多分类训练任务配置文件（适用于 USTC-TFC2016 TCP 多类流量分类）。
 #   包含数据路径、模型结构参数、训练超参数、保存目录、预训练权重路径等信息。
@@ -8,8 +8,8 @@
 # Date: 2025
 
 # ========== 数据配置 ==========
-data_path: data/payload/feature/ustc2016/tcp/all/multiclass/ustc2016_multilass_all_normalized.npz  # 特征数据（.npz 格式，包含 X 和 y）
-label_map_path: data/payload/feature/ustc2016/tcp/all/multiclass/ustc2016_multilass_label_all.json  # 标签映射表（class_name -> index）
+data_path: data/ustc2016/payload/feature/tcp/all/multiclass/ustc2016_multilass_all_normalized.npz  # 特征数据（.npz 格式，包含 X 和 y）
+label_map_path: data/ustc2016/payload/feature/tcp/all/multiclass/ustc2016_multilass_label_all.json  # 标签映射表（class_name -> index）
 train_ratio: 0.8  # 训练集占比，0.8 表示 80% 用于训练，20% 用于验证
 
 # ========== 模型结构参数 ==========
@@ -19,7 +19,7 @@ hidden_dim: 128       # Transformer 编码维度（d_model）
 
 # ========== 训练超参数 ==========
 batch_size: 32             # 批大小
-epochs: 1                 # 最大训练轮数
+epochs: 2                 # 最大训练轮数
 lr: 0.0001                 # 学习率
 early_stop_patience: 10   # EarlyStopping 提前终止容忍轮数
 device: cuda              # 运算设备（cuda / cpu）
@@ -31,3 +31,14 @@ use_timestamp: false  # 是否在模型文件名和图像目录中添加时间�
 # ========== 可选预训练模型路径 ==========
 pretrained_classifier_path: checkpoints/inf/ustc2016/tcp/multiclass/classifier.pt  # 可选，预加载classifier分类器参数
 pretrained_encoder_path: checkpoints/inf/ustc2016/tcp/multiclass/ft.pt  # 可选，预加载ft编码器参数
+
+normal_labels:
+  - BitTorrent
+  - FTP
+  - Gmail
+  - MySQL
+  - Outlook
+  - SMB
+  - Skype
+  - Weibo
+  - WorldOfWarcraft

@@ -1,0 +1,22 @@
+# Filename: train.yaml
+# Description: 多分类训练配置（自动读取标签映射）
+# Author: msy
+# Date: 2025
+
+data_path: data/cic2017/print/normalized/all.npz            # .npz 特征文件路径
+label_map_path: data/cic2017/print/normalized/all_label_map.json  # 标签映射 JSON
+
+input_dim: 16                        # 可选：特征维度（也可以自动推断）
+save_path: saved_model/identity_model.pt
+
+batch_size: 64
+epochs: 20
+learning_rate: 0.001
+
+encoder_hidden_dim: 128
+encoded_dim: 64
+
+tcn_hidden_dim: 64
+embed_dim: 32
+tcn_levels: 3
+kernel_size: 3

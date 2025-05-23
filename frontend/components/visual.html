@@ -1,4 +1,8 @@
 <!-- Filename: visual.html -->
+<!-- Path: frontend/components/visual.html -->
+<!-- Description:  -->
+<!-- Author: msy -->
+<!-- Date: 2025 -->
 <h2 class="mb-3">可视化分析</h2>
 <p class="text-muted">支持切换模型与来源，显示降维分布图与聚类分析图。</p>
 
@@ -20,11 +24,16 @@
   </div>
 </div>
 
-<div class="card shadow-sm p-3 mb-3">
+<!-- <div class="card shadow-sm p-3 mb-3">
   <canvas id="cluster-chart" height="200"></canvas>
-</div>
+</div> -->
 
 <div class="small text-muted">
   <strong>说明：</strong>
   红色代表恶意流量，蓝色为正常样本，不同类别可能聚类于不同区域。
+</div>
+
+<div class="card shadow-sm p-4 mt-4">
+  <h5 class="mb-3">推理特征图像展示</h5>
+  <div id="figures-box" class="row g-4"></div>
 </div>

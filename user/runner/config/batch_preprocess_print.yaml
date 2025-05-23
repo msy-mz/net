@@ -1,0 +1,7 @@
+# Filename: batch_preprocess.yaml
+# Description: 批处理参数配置
+# Author: msy
+# Date: 2025
+
+input_dir: data/cic2017/print/Malware            # 包含多个 CSV 的目录
+output_dir: data/cic2017/print/normalized/Malware           # 输出 .npz 保存目录

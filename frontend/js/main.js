@@ -1,13 +1,11 @@
 // Filename: main.js
 // Path: frontend/js/main.js
-// Description: 模块导航逻辑控制 + 动态 HTML 懒加载 + JS 初始化绑定（支持 upload/visual 模块）
+// Description: 模块导航切换控制 + 顶部/侧边栏加载 + 动态加载模块 HTML 与 JS
 // Author: msy
 // Date: 2025
 
-// 默认激活模块 ID
 const DEFAULT_MODULE_ID = 'dashboard';
 
-// 模块 ID 到名称的映射，用于面包屑与标题
 const moduleMap = {
   dashboard: '系统总览',
   monitor: '实时监听分析',
@@ -16,14 +14,14 @@ const moduleMap = {
   log: '监听日志报告'
 };
 
-// 各模块 JS 初始化函数（使用 import 动态加载）
+// ✅ 用相对路径写法，确保兼容打包与部署
 const moduleInit = {
   dashboard: async () => {
     try {
       const m = await import('./modules/dashboard.js');
       m.initDashboard && m.initDashboard();
     } catch (e) {
-      console.warn('[dashboard] 未提供 JS 模块，已跳过初始化');
+      console.warn('[dashboard] 未提供 JS 模块', e);
     }
   },
   monitor: async () => {
@@ -31,7 +29,7 @@ const moduleInit = {
       const m = await import('./modules/monitor.js');
       m.initMonitor && m.initMonitor();
     } catch (e) {
-      console.warn('[monitor] 未提供 JS 模块，已跳过初始化');
+      console.warn('[monitor] 未提供 JS 模块', e);
     }
   },
   upload: async () => {
@@ -39,7 +37,7 @@ const moduleInit = {
       const m = await import('./modules/upload.js');
       m.initUpload && m.initUpload();
     } catch (e) {
-      console.warn('[upload] 未提供 JS 模块，已跳过初始化');
+      console.warn('[upload] 未提供 JS 模块', e);
     }
   },
   visual: async () => {
@@ -47,7 +45,7 @@ const moduleInit = {
       const m = await import('./modules/visual.js');
       m.initFigures && m.initFigures();
     } catch (e) {
-      console.warn('[visual] 未提供 JS 模块，已跳过初始化');
+      console.warn('[visual] 未提供 JS 模块', e);
     }
   },
   log: async () => {
@@ -55,71 +53,84 @@ const moduleInit = {
       const m = await import('./modules/log.js');
       m.initLog && m.initLog();
     } catch (e) {
-      console.warn('[log] 未提供 JS 模块，已跳过初始化');
+      console.warn('[log] 未提供 JS 模块', e);
     }
   }
 };
 
-// 已加载模块缓存集合，避免重复加载
 const loaded = new Set();
 
-/**
- * 加载模块 HTML 内容并激活模块
- * @param {string} id - 模块 ID
- */
+// 加载模块 HTML 并初始化 JS
 export async function loadModule(id) {
   const section = document.getElementById(id);
   if (!section) return;
 
-  // 首次加载 HTML 结构
   if (!loaded.has(id)) {
     try {
       const res = await fetch(`/components/${id}.html`);
       const html = await res.text();
       section.innerHTML = html;
       loaded.add(id);
-
-      // 模块 JS 初始化调用（如果存在）
-      const initFunc = moduleInit[id];
-      if (initFunc) await initFunc();
+      if (moduleInit[id]) await moduleInit[id]();
     } catch (err) {
       section.innerHTML = `<p class="text-danger">模块加载失败：${id}</p>`;
-      console.error(`[加载失败] /components/${id}.html`, err);
+      console.error(err);
     }
   }
 
-  // 激活当前模块，隐藏其他模块
+  // 激活模块显示
   document.querySelectorAll('section.module').forEach(s => s.classList.remove('active'));
   section.classList.add('active');
 
-  // 更新面包屑导航
+  // 同步导航高亮
+  document.querySelectorAll('.sidebar a').forEach(link => {
+    link.classList.toggle('active', link.getAttribute('data-module') === id);
+  });
+
+  // 更新面包屑
   const title = moduleMap[id] || id;
   document.getElementById('breadcrumb-box').innerHTML = `<span class="breadcrumb-item active">${title}</span>`;
 }
 
-/**
- * 初始化左侧导航栏点击事件
- */
+// 加载 sidebar.html 和 topbar.html
+async function loadFrameComponent(targetId, filePath) {
+  const target = document.getElementById(targetId);
+  if (!target) return;
+  try {
+    const res = await fetch(`/${filePath}`);
+    const html = await res.text();
+    target.innerHTML = html;
+  } catch (err) {
+    target.innerHTML = `<p class="text-danger">加载失败：${filePath}</p>`;
+    console.error(`[错误] 组件加载失败: ${filePath}`, err);
+  }
+}
+
+// 绑定导航点击事件
 function initSidebarNavigation() {
-  const links = document.querySelectorAll('.sidebar a');
-  links.forEach(link => {
+  document.querySelectorAll('.sidebar a').forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
       const id = link.getAttribute('data-module');
-      if (!id) return;
-
-      // 设置当前高亮
-      links.forEach(l => l.classList.remove('active'));
-      link.classList.add('active');
-
-      // 加载对应模块
-      loadModule(id);
+      if (id) loadModule(id);
     });
   });
 }
 
-// 页面加载完成后执行默认模块激活
-document.addEventListener('DOMContentLoaded', () => {
+// 初始化页面框架与默认模块
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadFrameComponent('sidebar-box', 'components/sidebar.html');
+  await loadFrameComponent('topbar-box', 'components/topbar.html');
+
+  setInterval(() => {
+    const now = new Date();
+    const timeBox = document.getElementById("time-box");
+    if (timeBox) timeBox.textContent = now.toLocaleString();
+  }, 1000);
+
   initSidebarNavigation();
   loadModule(DEFAULT_MODULE_ID);
 });
+
+// main.js 底部添加
+export { loadModule as showModule };

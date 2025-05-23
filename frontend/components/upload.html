@@ -1,4 +1,8 @@
 <!-- Filename: upload.html -->
+<!-- Path: frontend/components/upload.html -->
+<!-- Description:  -->
+<!-- Author: msy -->
+<!-- Date: 2025 -->
 <h2 class="mb-3">上传文件分析</h2>
 <p class="text-muted">上传本地 .pcap 文件，选择分析模型，提交后系统将自动提取特征并分类预测。</p>
 
@@ -6,7 +10,7 @@
   <form id="upload-form">
     <div class="mb-3">
       <label for="pcap-file" class="form-label">选择 .pcap 文件：</label>
-      <input type="file" class="form-control" id="pcap-file" name="pcap" accept=".pcap" required />
+      <input type="file" class="form-control" id="pcap-file" name="file" multiple required />
     </div>
 
     <div class="mb-3">

@@ -13,7 +13,7 @@ class FingerprintEncoder(nn.Module):
         """
         :param input_dim: 输入特征维度
         :param hidden_dim: MLP 隐层维度
-        :param output_dim: 输出编码维度（用于 TCN 输入）
+        :param output_dim: 输出编码维度（用于 TCN 输入或直接分类）
         """
         super(FingerprintEncoder, self).__init__()
         self.encoder = nn.Sequential(
@@ -24,8 +24,5 @@ class FingerprintEncoder(nn.Module):
         )
 
     def forward(self, x):
-        # x: [batch_size, seq_len, input_dim]
-        batch_size, seq_len, _ = x.size()
-        x = x.view(-1, x.size(2))           # 展平为 [B*T, F]
-        x = self.encoder(x)
-        return x.view(batch_size, seq_len, -1)  # 恢复为 [B, T, D]
+        # x: [batch_size, input_dim]
+        return self.encoder(x)  # 返回: [batch_size, output_dim]

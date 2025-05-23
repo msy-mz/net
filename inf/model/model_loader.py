@@ -1,5 +1,5 @@
-# Filename: loader.py
-# Path: inf/model/loader.py
+# Filename: model_loader.py
+# Path: inf/model/model_loader.py
 # Description: FT 编码器与分类器模型加载模块，支持外部模型路径自动加载
 # Author: msy
 # Date: 2025

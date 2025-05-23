@@ -1,0 +1,9 @@
+# Filename: batch_print.yaml
+# Description: 通用批量指纹提取任务配置
+# Author: msy
+# Date: 2025
+
+pcap_folder: data/ustc2016/pcap/Malware
+output_folder: data/ustc2016/print/Malware
+max_packets: null     # 可设置为整数，或 null 表示不限制
+label: null           # 可设置统一标签或 null 表示不指定

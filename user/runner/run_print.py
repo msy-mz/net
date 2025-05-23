@@ -14,7 +14,7 @@ sys.path.append(os.path.abspath("."))
 from user.print.extract import extract_fingerprint
 
 # ========================== 可配置参数 ==========================
-CONFIG_PATH = "user/scripts/config/print.yaml"
+CONFIG_PATH = "user/runner/config/print.yaml"
 # ============================================================
 
 # 加载 YAML 配置

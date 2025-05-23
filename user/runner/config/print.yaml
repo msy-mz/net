@@ -4,7 +4,7 @@
 # Author: msy
 # Date: 2025
 
-pcap_path: data/pcap/ustc2016/Malware/Cridex.pcap
-output_csv: data/csv/print/ustc2016/Malware/Cridex.csv
+pcap_path: data/cic2017/pcap/Monday_1GB.pcap
+output_csv: data/cic2017/print/Benign/Benign.csv
 label: null
 max_packets: None

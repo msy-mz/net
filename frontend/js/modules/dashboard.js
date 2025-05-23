@@ -1,7 +1,12 @@
 // Filename: dashboard.js
 // Path: frontend/js/modules/dashboard.js
+// Description: 
+// Author: msy
+// Date: 2025
 
-import Chart from 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.esm.js';
+
+const Chart = window.Chart;
+
 
 export function initDashboard() {
   // 模拟异常趋势图
