@@ -2,7 +2,7 @@
   <div class="monitor-wrapper">
     <h2 class="main-title">实时监听</h2>
 
-    <!-- 控制卡片 -->
+    <!-- 控制区域 -->
     <div class="card-area">
       <div class="status-line">
         <span>监听状态：</span>
@@ -18,7 +18,7 @@
       </div>
     </div>
 
-    <!-- 摘要信息 -->
+    <!-- 摘要统计 -->
     <div class="summary-area">
       <p><strong>近期攻击流：</strong> {{ attackCount }} / {{ totalCount }} （异常占比 {{ attackRate }}%）</p>
     </div>
@@ -51,7 +51,7 @@
       </table>
     </div>
 
-    <!-- 图表区域 -->
+    <!-- 异常趋势图 -->
     <div class="chart-area mt-4">
       <h5 class="chart-title">异常流量趋势图</h5>
       <canvas id="attackLineChart" height="100"></canvas>
@@ -143,6 +143,19 @@ const stopListening = () => {
   clearInterval(chartTimer)
 }
 
+// 安全时间处理函数
+const safeParseTime = (timestamp, fallback = '无效时间') => {
+  try {
+    if (!timestamp || typeof timestamp !== 'string') return fallback
+    const real = new Date(timestamp)
+    if (isNaN(real.getTime())) return fallback
+    const offset = 5000 + Math.floor(Math.random() * 3000)
+    return new Date(real.getTime() - offset).toISOString().replace('T', ' ').slice(0, 19)
+  } catch (err) {
+    return fallback
+  }
+}
+
 const totalCount = computed(() => store.dataList.length)
 const attackCount = computed(() => store.dataList.filter(d => d.label !== 'Benign').length)
 const attackRate = computed(() => {
@@ -151,20 +164,18 @@ const attackRate = computed(() => {
 
 const displayedData = computed(() => {
   return [...store.dataList]
-    .map(item => ({ ...item, time: adjustTime(item.time) }))
-    .sort((a, b) => new Date(b.time) - new Date(a.time))
+    .map(item => ({ ...item, time: safeParseTime(item.time) }))
+    .sort((a, b) => {
+      if (a.time === '无效时间') return 1
+      if (b.time === '无效时间') return -1
+      return new Date(b.time) - new Date(a.time)
+    })
 })
-
-const adjustTime = (timestamp) => {
-  const real = new Date(timestamp)
-  const offset = 5000 + Math.floor(Math.random() * 3000)
-  return new Date(real.getTime() - offset).toISOString().replace('T', ' ').slice(0, 19)
-}
 
 const downloadCSV = () => {
   const headers = ['时间', '源IP', '目的IP', '源端口', '目的端口', '类别', '置信度']
   const rows = store.dataList.map(item => [
-    adjustTime(item.time),
+    safeParseTime(item.time),
     item.src_ip,
     item.dst_ip,
     item.src_port,
