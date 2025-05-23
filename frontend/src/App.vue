@@ -1,14 +1,12 @@
 <template>
   <div class="d-flex layout-wrapper">
-    <!-- 侧边栏 -->
-    <Sidebar v-model:collapsed="sidebarCollapsed" />
+    <!-- 左侧导航栏（根据 sidebarVisible 控制） -->
+    <Sidebar v-if="sidebarVisible" @close="sidebarVisible = false" />
 
     <!-- 右侧主区域 -->
     <div class="main-panel">
-      <!-- 顶部栏固定 -->
-      <Topbar @toggleSidebar="sidebarCollapsed = !sidebarCollapsed" />
+      <Topbar @toggleSidebar="toggleSidebar" />
 
-      <!-- 主内容：加 margin-top 避免被顶栏遮挡 -->
       <main class="main-content">
         <keep-alive include="Monitor">
           <router-view />
@@ -23,7 +21,11 @@ import { ref } from 'vue'
 import Sidebar from './components/Sidebar.vue'
 import Topbar from './components/TopBar.vue'
 
-const sidebarCollapsed = ref(false)
+const sidebarVisible = ref(true)
+
+function toggleSidebar() {
+  sidebarVisible.value = !sidebarVisible.value
+}
 </script>
 
 <style scoped>
@@ -41,7 +43,7 @@ const sidebarCollapsed = ref(false)
 .main-content {
   flex-grow: 1;
   padding: 24px;
-  margin-top: 56px; /* 顶栏高度 */
+  margin-top: 56px;
   overflow-y: auto;
   background-color: #f8f9fa;
 }
