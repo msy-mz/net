@@ -1,9 +1,3 @@
-<!-- Filename: QuickEntry.vue -->
-<!-- Path: frontend-vue/components/QuickEntry.vue -->
-<!-- Description: 快速入口卡片组件，包含模块图标和点击跳转功能 -->
-<!-- Author: msy -->
-<!-- Date: 2025 -->
-
 <template>
   <div class="row g-3 mb-4">
     <div

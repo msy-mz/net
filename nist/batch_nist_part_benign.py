@@ -9,8 +9,8 @@ import json
 import csv
 
 # 输入目录、输出CSV文件路径和标签
-input_directory = "inf/data/bin/Benign/BitTorrent"  # 输入文件夹路径
-output_csv_file = "inf/data/csv/nist/BitTorrent.csv"  # 输出CSV文件路径
+input_directory = "/home/msy/net/data/ustc2016/payload/bin/tcp/Benign/BitTorrent"  # 输入文件夹路径
+output_csv_file = "./csv"  # 输出CSV文件路径
 traffic_label = "BitTorrent"  # 固定标签为 "BENIGN"
 
 # 选择要执行的NIST测试项（用编号表示）

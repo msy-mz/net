@@ -9,18 +9,20 @@ import json
 import csv
 
 # 输入目录、输出CSV文件路径和标签
-input_directory = "/home/msy/net/inf/data/bin/payload/tcp/USTC-TFC2016/Benign/BitTorrent"  # 输入文件夹路径
-output_csv_file = "/home/msy/net/nist/nist_result/tcp/USTC-TFC2016/Benign/BitTorrent.csv"  # 输出CSV文件路径
+input_directory = "/home/msy/net/data/ustc2016/payload/bin/tcp/Benign/BitTorrent"  # 输入文件夹路径
+output_csv_file = "BitTorrent.csv"  # 输出CSV文件路径
 traffic_label = "BitTorrent"  # 固定标签为 "BENIGN"
 
 # 随机性检测工具的参数（根据需要调整）
-DataSegmentLength = "3000"  
+DataSegmentLength = "2000"  
 Option = "0"                   
 TestMode = "1"                
 StreamNumber = "1"            
 FileFormat = "1"  # 假设FileFormat=1表示二进制文件格式（根据实际情况调整）
 
-os.makedirs(os.path.dirname(output_csv_file), exist_ok=True)
+if os.path.dirname(output_csv_file):
+    os.makedirs(os.path.dirname(output_csv_file), exist_ok=True)
+
 
 def run_randomness_test(input_file):
     """

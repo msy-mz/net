@@ -1,24 +1,18 @@
-<!-- Filename: Sidebar.vue -->
-<!-- Path: frontend-vue/src/components/Sidebar.vue -->
-<!-- Description: 左侧模块导航栏 -->
-<!-- Author: msy -->
-<!-- Date: 2025 -->
-
 <template>
-  <div :class="['sidebar bg-dark text-white p-3', { collapsed }]" style="transition: all 0.3s;" >
-    <h5 class="mb-4 d-flex justify-content-between align-items-center">
-      FT-IDNet++
-      <i class="fas fa-bars d-md-none" @click="collapsed = !collapsed" style="cursor: pointer;"></i>
-    </h5>
-    <ul class="nav flex-column" v-show="!collapsed || isDesktop">
-      <li v-for="item in navs" :key="item.name" class="nav-item">
-        <a class="nav-link text-white" href="#" @click.prevent="navigate(item.route)">
-          <i :class="item.icon" class="me-2"></i>{{ item.name }}
-        </a>
-      </li>
-    </ul>
-  </div>
+  <aside :class="['sidebar', { collapsed }]">
+    <nav v-show="!collapsed || isDesktop">
+      <ul>
+        <li v-for="item in navs" :key="item.name"
+            :class="{ active: $route.path === item.route }"
+            @click="navigate(item.route)">
+          <i :class="item.icon"></i>
+          <span>{{ item.name }}</span>
+        </li>
+      </ul>
+    </nav>
+  </aside>
 </template>
+
 
 <script setup>
 import { ref, onMounted } from 'vue'
@@ -36,32 +30,67 @@ onMounted(() => {
   })
 })
 
-
 const navs = [
-  { name: '系统总览', route: '/', icon: 'fas fa-tachometer-alt' },
-  { name: '实时监听', route: '/monitor', icon: 'fas fa-wifi' },
-  { name: '上传分析', route: '/upload', icon: 'fas fa-upload' },
-  { name: '可视化分析', route: '/visual', icon: 'fas fa-chart-line' },
-  { name: '监听日志', route: '/log', icon: 'fas fa-list' },
-  { name: 'NIST 测试', route: '/nist-test', icon: 'fas fa-vial' }
+  { name: '系统总览', route: '/', icon: 'fas fa-chart-pie' },
+  { name: '实时监听', route: '/monitor', icon: 'fas fa-broadcast-tower' },
+  { name: '上传分析', route: '/upload', icon: 'fas fa-file-upload' },
+  { name: '可视化分析', route: '/visual', icon: 'fas fa-project-diagram' },
+  { name: '监听日志', route: '/log', icon: 'fas fa-file-alt' },
+  { name: '载荷提取', route: '/payload', icon: 'fas fa-database' },
+  { name: 'NIST 测试', route: '/nist-test', icon: 'fas fa-microscope' },
+  { name: '用户管理', route: '/user', icon: 'fas fa-users-cog' }// 新增
+
 ]
 
+
 const navigate = (route) => {
-  if (!isDesktop.value) {
-    collapsed.value = true
-  }
+  if (!isDesktop.value) collapsed.value = true
   router.push(route)
 }
-
 </script>
 
 <style scoped>
 .sidebar {
-  width: 220px;
+  width: 240px;
+  background-color: #ffffff;
+  color: #333;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 16px;
+  border-right: 1px solid #e6e6e6;
+  font-family: "Segoe UI", "HarmonyOS Sans", sans-serif;
 }
-.sidebar.collapsed {
-  width: 0;
+nav ul {
+  list-style: none;
   padding: 0;
-  overflow: hidden;
+  margin: 0 auto;
+  width: 100%;
+}
+nav ul li {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  transition: background-color 0.2s ease;
+}
+nav ul li i {
+  margin-right: 12px;
+  font-size: 16px;
+  color: #4c84ff;
+}
+nav ul li:hover {
+  background-color: #f2f4f8;
+}
+nav ul li.active {
+  background-color: #eaf0ff;
+  font-weight: 600;
+}
+nav ul li span {
+  flex: 1;
 }
 </style>

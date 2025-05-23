@@ -1,9 +1,3 @@
-<!-- Filename: TrendChart.vue -->
-<!-- Path: frontend-vue/components/TrendChart.vue -->
-<!-- Description: 异常流量趋势图组件，包含标题图标和趋势可视化图表 -->
-<!-- Author: msy -->
-<!-- Date: 2025 -->
-
 <template>
   <div class="card shadow-sm p-3">
     <h6 class="mb-3">

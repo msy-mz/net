@@ -1,9 +1,3 @@
-<!-- Filename: StatCard.vue -->
-<!-- Path: frontend-vue/components/StatCard.vue -->
-<!-- Description: 系统统计卡片组件，展示流量分析、模型状态、资源使用，附图标 -->
-<!-- Author: msy -->
-<!-- Date: 2025 -->
-
 <template>
   <div class="row">
     <div class="col-md-4" v-for="(card, index) in cards" :key="index">

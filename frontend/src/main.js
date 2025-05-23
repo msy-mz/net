@@ -9,9 +9,13 @@ import App from './App.vue'
 import router from './router'
 import './assets/main.css'
 import '@fortawesome/fontawesome-free/css/all.min.css'
-import 'bootstrap/dist/css/bootstrap.min.css'  
+import 'bootstrap/dist/css/bootstrap.min.css'
 
+import { createPinia } from 'pinia'
 
-const app = createApp(App)
+const app = createApp(App)     // ✅ 必须先创建 app 实例
+const pinia = createPinia()
+
+app.use(pinia)
 app.use(router)
 app.mount('#app')
