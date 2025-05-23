@@ -30,10 +30,9 @@ const navs = [
 
 function navigate(routePath) {
   router.push(routePath)
-  if (window.innerWidth < 768) {
-    emit('close') // 小屏自动关闭 Sidebar
-  }
+  emit('close') // 始终触发关闭
 }
+
 </script>
 
 <style scoped>
