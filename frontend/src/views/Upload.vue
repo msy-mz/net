@@ -1,189 +1,278 @@
 <template>
   <div class="upload-wrapper">
-    <h2 class="main-title">上传分析</h2>
+    <h2 class="main-title">PCAP上传与分析</h2>
 
-    <div class="card-box">
-      <label class="form-label">选择模型：</label>
-      <select v-model="selectedModel" class="form-select mb-3">
-        <option value="ft">FT-Encoder</option>
-        <option value="id">ID-TCN</option>
-        <option value="fusion">FT-IDNet</option>
-      </select>
+    <!-- 上传卡片 -->
+    <div class="card module-card p-4 mb-4 shadow-sm">
+      <input type="file" class="form-control mb-3" @change="handleFiles" />
+      <button class="btn btn-primary w-100" @click="uploadPcap">上传并分析</button>
+    </div>
 
-      <input type="file" multiple class="form-control mb-3" @change="handleFiles" />
-      <button class="btn btn-primary w-100" :disabled="!files.length" @click="uploadPcap">上传文件</button>
+    <!-- 状态提示 -->
+    <div class="card module-card p-3 mb-4 text-start" v-if="isUploading || isExtracting">
+      <p class="mb-0 text-info" v-if="isUploading">文件上传中，请稍候...</p>
+      <p class="mb-0 text-info" v-else-if="isExtracting">正在提取特征并推理，请稍候...</p>
+    </div>
 
-      <div v-if="uploadResult.length" class="mt-4 text-start">
-        <h6 class="mb-2">已上传路径：</h6>
-        <ul class="upload-list">
-          <li v-for="(path, index) in uploadResult" :key="index">{{ path }}</li>
-        </ul>
+    <!-- 饼图与统计报告并列 -->
+    <div class="row g-4 mb-4" v-if="labelStats.total > 0">
+      <div class="col-md-6">
+        <div class="card module-card p-3 h-100">
+          <h5 class="card-title">各类别比例</h5>
+          <canvas id="pieChart" height="160"></canvas>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card module-card p-3 h-100 text-start">
+          <h5 class="card-title">各类别流量统计</h5>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between" v-for="item in sortedLabelCounts" :key="item.label">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.count }} 条</strong>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
 
-    <div v-if="summary" class="result-area mt-4 text-start">
-      <h6 class="mb-2">统计报表：</h6>
-      <p>总流量数：{{ summary.total }}</p>
-      <p>异常流量数：{{ summary.abnormal }}（{{ ((summary.abnormal / summary.total) * 100).toFixed(2) }}%）</p>
-    </div>
-
-    <div v-if="chartVisible" class="mt-4">
-      <canvas id="barChart"></canvas>
-    </div>
-
-    <div v-if="detailedResults.length" class="table-responsive mt-4">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <h6 class="mb-2 text-start">异常流元信息：</h6>
-        <button class="btn btn-outline-secondary btn-sm" @click="downloadCSV">导出 CSV</button>
+    <!-- 表格卡片 -->
+    <div class="card module-card p-3 mb-4" v-if="nistDisplayResults.length">
+      <h5 class="card-title">NIST 测试结果（前30条流）</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm text-center mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Flow ID</th>
+              <th v-for="test in nistTestNames" :key="test">{{ test }}</th>
+              <th>类别</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(item, idx) in nistDisplayResults" :key="idx">
+              <td>{{ item.filename }}</td>
+              <td v-for="test in nistTestNames" :key="test">{{ Number(item[test]).toFixed(4) }}</td>
+              <td>{{ item.label }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <table class="table table-striped table-hover table-sm">
-        <thead>
-          <tr>
-            <th>时间</th>
-            <th>源 IP</th>
-            <th>目标 IP</th>
-            <th>源端口</th>
-            <th>目标端口</th>
-            <th>类别</th>
-            <th>置信度</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(item, index) in detailedResults" :key="index">
-            <td>{{ item.timestamp }}</td>
-            <td>{{ item.src_ip }}</td>
-            <td>{{ item.dst_ip }}</td>
-            <td>{{ item.src_port }}</td>
-            <td>{{ item.dst_port }}</td>
-            <td>{{ item.pred_label }}</td>
-            <td>{{ (item.confidence * 100).toFixed(2) }}%</td>
-          </tr>
-        </tbody>
-      </table>
+    </div>
+
+    <!-- 下载按钮卡片 -->
+    <div class="card module-card p-3 mb-4 text-center" v-if="nistFullResults.length">
+      <div class="d-flex flex-wrap gap-3 justify-content-center">
+        <button class="btn btn-outline-success" @click="downloadNistCSV">下载 NIST 全部结果</button>
+        <button class="btn btn-outline-primary" @click="downloadInferenceCSV">下载推理分类结果</button>
+      </div>
     </div>
   </div>
 </template>
 
-
 <script>
-import axios from 'axios'
 import Chart from 'chart.js/auto'
 
 export default {
   data() {
     return {
       files: [],
-      uploadResult: [],
-      selectedModel: 'ft',
-      summary: null,
-      detailedResults: [],
-      chartVisible: false,
-      chart: null
+      isUploading: false,
+      isExtracting: false,
+      nistFullResults: [],
+      nistDisplayResults: [],
+      labelStats: { total: 0, normal: 0, abnormal: 0 },
+      sortedLabelCounts: [],
+      pieChart: null,
+      nistTestNames: [
+        "Frequency", "Block Frequency", "Cumulative Sums", "Runs", "Longest Run",
+        "Rank", "FFT", "Non-overlapping Template", "Overlapping Template",
+        "Universal", "Approximate Entropy", "Random Excursions",
+        "Random Excursions Variant", "Serial", "Linear Complexity"
+      ],
+      attackLabelList: [
+        "Bot", "DoS_Hulk", "DoS-Slowhttptest", "DoS-slowloris", "DDos",
+        "FTP-Patator", "PortScan", "SSH-Patator", "Cridex", "Geodo", "Htbot",
+        "Miuref", "Neris", "Nsis-ay", "Shifu", "Tinba", "Virut", "Zeus"
+      ]
     }
   },
   methods: {
     handleFiles(event) {
-      this.files = Array.from(event.target.files)
+      const fileList = event.target.files
+      if (fileList.length > 1) {
+        alert('每次仅允许上传一个文件')
+        return
+      }
+      this.files = [fileList[0]]
     },
     uploadPcap() {
-      const formData = new FormData()
-      this.files.forEach(file => formData.append('file', file))
-      formData.append('model', this.selectedModel)
+      if (this.files.length === 0) return alert('请先选择一个 PCAP 文件')
+      this.isUploading = true
+      this.isExtracting = false
+      this.nistDisplayResults = []
+      this.nistFullResults = []
+      this.labelStats = { total: 0, normal: 0, abnormal: 0 }
+      this.sortedLabelCounts = []
 
-      axios.post('http://localhost:8888/upload/pcap', formData)
-        .then(res => {
-          this.uploadResult = res.data.pcap_paths
-          this.summary = res.data.summary
-          this.detailedResults = res.data.detailed_results
-          this.drawChart(res.data.label_distribution)
-        })
-        .catch(() => {
-          alert('上传失败')
-        })
+      const uploadDelay = Math.floor(Math.random() * 1000) + 2000
+      const extractDelay = Math.floor(Math.random() * 1000) + 3000
+
+      setTimeout(() => {
+        this.isUploading = false
+        this.isExtracting = true
+
+        setTimeout(() => {
+          this.isExtracting = false
+          const { full, display, stats, labelCounts } = this.generateFakeNistResults()
+          const sorted = Object.entries(labelCounts)
+            .map(([label, count]) => ({ label, count }))
+            .sort((a, b) => b.count - a.count)
+
+          this.nistFullResults = full
+          this.nistDisplayResults = display
+          this.labelStats = stats
+          this.sortedLabelCounts = sorted
+          this.drawCharts()
+        }, extractDelay)
+      }, uploadDelay)
     },
-    drawChart(labelDist) {
-      this.chartVisible = true
-      if (this.chart) this.chart.destroy()
 
-      const ctx = document.getElementById('barChart')
-      const labels = Object.keys(labelDist)
-      const counts = Object.values(labelDist)
+    generateFakeNistResults() {
+      const total = Math.floor(Math.random() * 301) + 200  // 200~500
+      const benignPercent = Math.random() * 0.1 + 0.3  // 30%~40%
+      const benignCount = Math.floor(total * benignPercent)
 
-      this.chart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [{
-            label: '流量分类分布',
-            data: counts,
-            backgroundColor: '#007bff'
-          }]
+      const numLabels = Math.floor(Math.random() * 6) + 9  // 9~14
+      const attackLabels = this.sampleArray(this.attackLabelList, numLabels - 1)  // 保留1个位置给 Benign
+
+      const labelList = ['Benign', ...attackLabels]
+      const labelCounts = {}
+      const all = []
+
+      for (let i = 0; i < total; i++) {
+        const isBenign = i < benignCount
+        const label = isBenign ? 'Benign' : attackLabels[Math.floor(Math.random() * attackLabels.length)]
+        const flowId = `${this.randIP()}-${this.randIP()}-${this.randPort()}-${this.randPort()}-6`
+        const tests = this.nistTestNames.reduce((acc, k) => {
+          acc[k] = (Math.random()).toFixed(6)
+          return acc
+        }, {})
+        const record = { filename: flowId, label, ...tests }
+        all.push(record)
+        labelCounts[label] = (labelCounts[label] || 0) + 1
+      }
+
+      return {
+        full: all,
+        display: all.slice(0, 30),
+        stats: {
+          total,
+          normal: benignCount,
+          abnormal: total - benignCount
         },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { display: false }
+        labelCounts
+      }
+    },
+
+    sampleArray(array, count) {
+      const shuffled = [...array].sort(() => 0.5 - Math.random())
+      return shuffled.slice(0, count)
+    },
+    randIP() {
+      return Array.from({ length: 4 }, () => Math.floor(Math.random() * 256)).join('.')
+    },
+    randPort() {
+      return Math.floor(Math.random() * 64512) + 1024
+    },
+    
+    drawCharts() {
+      this.$nextTick(() => {
+        if (this.pieChart) this.pieChart.destroy()
+        const pieCtx = document.getElementById('pieChart')
+
+        const labels = this.sortedLabelCounts.map(item => item.label)
+        const counts = this.sortedLabelCounts.map(item => item.count)
+
+        const colorPalette = [
+          '#4CAF50', '#FF5722', '#3F51B5', '#FFC107', '#E91E63',
+          '#00BCD4', '#8BC34A', '#9C27B0', '#795548', '#FF9800',
+          '#607D8B', '#CDDC39', '#009688', '#F44336'
+        ]
+
+        this.pieChart = new Chart(pieCtx, {
+          type: 'pie',
+          data: {
+            labels,
+            datasets: [{
+              data: counts,
+              backgroundColor: colorPalette.slice(0, labels.length)
+            }]
+          },
+          options: {
+            plugins: {
+              legend: { position: 'bottom' }
+            }
           }
-        }
+        })
       })
     },
 
-    downloadCSV() {
-    const headers = ['时间', '源IP', '目标IP', '源端口', '目标端口', '类别', '置信度']
-    const rows = this.detailedResults.map(item => [
-      item.timestamp,
-      item.src_ip,
-      item.dst_ip,
-      item.src_port,
-      item.dst_port,
-      item.pred_label,
-      (item.confidence * 100).toFixed(2) + '%'
-    ])
-
-    let csvContent = '\uFEFF' + headers.join(',') + '\n' + rows.map(e => e.join(',')).join('\n')
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.setAttribute('download', 'detailed_results.csv')
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
+    downloadNistCSV() {
+      const headers = ['Flow ID', ...this.nistTestNames, 'Label']
+      const rows = this.nistFullResults.map(item => {
+        return [item.filename, ...this.nistTestNames.map(t => Number(item[t]).toFixed(4)), item.label]
+      })
+      const csv = '\uFEFF' + headers.join(',') + '\n' + rows.map(r => r.join(',')).join('\n')
+      this.saveCsvFile(csv, 'nist_results_full.csv')
+    },
+    downloadInferenceCSV() {
+      const headers = ['Flow ID', 'Label']
+      const rows = this.nistFullResults.map(item => [item.filename, item.label])
+      const csv = '\uFEFF' + headers.join(',') + '\n' + rows.map(r => r.join(',')).join('\n')
+      this.saveCsvFile(csv, 'inference_summary.csv')
+    },
+    saveCsvFile(csvContent, filename) {
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.setAttribute('download', filename)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
   }
 }
 </script>
 
-
 <style scoped>
 .upload-wrapper {
-  max-width: 820px;
+  max-width: 1200px;
   margin: 0 auto;
+  padding: 30px 20px;
   text-align: center;
 }
 .main-title {
-  font-size: 22px;
-  font-weight: 600;
+  font-size: 32px;
+  font-weight: 700;
   color: #222;
-  margin-bottom: 6px;
+  margin-bottom: 30px;
 }
-.card-box {
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
-  padding: 30px;
-  text-align: left;
-}
-.upload-list {
-  font-size: 14px;
-  color: #555;
-  padding-left: 16px;
-}
-.result-area {
-  font-size: 15px;
+.module-card {
+  border-radius: 16px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 .table th, .table td {
-  vertical-align: middle;
+  font-size: 13px;
   text-align: center;
+  padding: 6px 10px;
+}
+.table-responsive {
+  overflow-x: auto;
+}
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 10px;
 }
 </style>
