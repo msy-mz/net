@@ -80,10 +80,10 @@ const initChart = () => {
     chart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: Array(30).fill(''),
+        labels: [],  // 初始化为空
         datasets: [{
           label: '每秒攻击数量',
-          data: [...store.attackHistory],
+          data: [],
           borderWidth: 2,
           borderColor: '#e53935',
           backgroundColor: 'rgba(229, 57, 53, 0.15)',
@@ -104,21 +104,53 @@ const initChart = () => {
           }
         },
         scales: {
-          x: { ticks: { color: '#666', font: { size: 12 } } },
-          y: { beginAtZero: true, ticks: { color: '#666', stepSize: 1, font: { size: 12 } } }
+          x: {
+            ticks: {
+              color: '#666',
+              font: { size: 12 },
+              maxRotation: 60,
+              autoSkip: true
+            }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              color: '#666',
+              stepSize: 1,
+              font: { size: 12 }
+            }
+          }
         }
       }
     })
   })
 }
 
+
+
 const updateChartLoop = () => {
   if (!chart) return
   chartTimer = setInterval(() => {
-    chart.data.datasets[0].data = [...store.attackHistory]
+    // 确保按时间升序排序，再取最后30条
+    const sorted = [...store.dataList].sort((a, b) =>
+      new Date(a.time) - new Date(b.time)
+    )
+    const recentItems = sorted.slice(-30)
+
+    const labels = recentItems.map(item =>
+      item.time ? item.time.slice(11) : '--:--:--'
+    )
+    const values = recentItems.map(item =>
+      item.label !== 'Benign' ? 1 : 0
+    )
+
+    chart.data.labels = labels
+    chart.data.datasets[0].data = values
     chart.update()
   }, 1000)
 }
+
+
 
 const startListening = () => {
   isStarting.value = true
@@ -176,20 +208,28 @@ const displayedData = computed(() => {
 
 const downloadCSV = () => {
   const headers = ['时间', '源IP', '目的IP', '源端口', '目的端口', '类别', '置信度']
+  
   const rows = store.dataList.map(item => [
     safeParseTime(item.time),
     item.src_ip,
     item.dst_ip,
-    item.src_port,
-    item.dst_port,
+    String(item.src_port),          // 转为字符串，防止科学计数
+    String(item.dst_port),
     item.label,
     (item.confidence * 100).toFixed(2) + '%'
   ])
+
   const infoRow = ['监听IP: 10.30.247.240', '监听端口: 443']
-  const csvContent = '\uFEFF' + [infoRow, headers, ...rows].map(e => e.join(',')).join('\n')
+  
+  const csvContent = '\uFEFF' + [infoRow, headers, ...rows]
+    .map(row => row.map(col => `"${col}"`).join(','))  // 加双引号确保安全
+    .join('\n')
+
   const timestamp = new Date().toISOString().replace(/[:T]/g, '-').split('.')[0]
-  saveAs(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }), `realtime_log_${timestamp}.csv`)
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  saveAs(blob, `realtime_log_${timestamp}.csv`)
 }
+
 
 onMounted(() => {
   initChart()
