@@ -21,7 +21,7 @@ import { ref } from 'vue'
 import Sidebar from './components/Sidebar.vue'
 import Topbar from './components/TopBar.vue'
 
-const sidebarVisible = ref(true)
+const sidebarVisible = ref(false)
 
 function toggleSidebar() {
   sidebarVisible.value = !sidebarVisible.value
