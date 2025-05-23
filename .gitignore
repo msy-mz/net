@@ -13,3 +13,4 @@ ja3/
 output/
 result/
 pcap_inputs/
+node_modules/
