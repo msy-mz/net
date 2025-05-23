@@ -277,7 +277,7 @@ export default {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 .pie-chart-canvas {
-  max-height: 300px;
+  max-height: 400px;
   margin-bottom: 10px;
 }
 .table th, .table td {
