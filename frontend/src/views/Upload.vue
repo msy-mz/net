@@ -4,10 +4,14 @@
 
     <!-- 上传卡片 -->
     <div class="card module-card p-4 mb-4 shadow-sm text-center">
-      <input type="file" class="form-control mb-3 file-input" @change="handleFiles" />
+      <label class="custom-upload-btn">
+        选择文件
+        <input type="file" class="file-input" @change="handleFiles" />
+      </label>
       <p class="file-name" v-if="files.length">{{ files[0].name }}</p>
-      <button class="btn btn-primary w-100" @click="uploadPcap">上传并分析</button>
+      <button class="btn btn-primary w-100 mt-3" @click="uploadPcap">上传并分析</button>
     </div>
+
 
     <!-- 状态提示 -->
     <div class="card module-card p-3 mb-4 text-center" v-if="isUploading || isExtracting">
@@ -70,7 +74,7 @@
     <!-- 下载按钮卡片 -->
     <div class="card module-card p-3 mb-4 text-center" v-if="nistFullResults.length">
       <div class="d-flex flex-wrap gap-3 justify-content-center">
-        <button class="btn btn-outline-success" @click="downloadNistCSV">下载 NIST 全部结果</button>
+        <button class="btn btn-outline-success" @click="downloadNistCSV">下载 NIST 测试结果</button>
         <button class="btn btn-outline-primary" @click="downloadInferenceCSV">下载推理分类结果</button>
       </div>
     </div>
@@ -316,9 +320,33 @@ export default {
   border-radius: 50%;
   margin-right: 5px;
 }
+
+.custom-upload-btn {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #1976d2;
+  color: white;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  font-size: 16px;
+}
+
+.custom-upload-btn input[type="file"] {
+  opacity: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
 .file-name {
   font-size: 14px;
   color: #444;
-  margin-bottom: 10px;
+  margin-top: 12px;
+  text-align: center;
 }
 </style>
