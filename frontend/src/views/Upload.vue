@@ -3,13 +3,14 @@
     <h2 class="main-title">PCAP上传与分析</h2>
 
     <!-- 上传卡片 -->
-    <div class="card module-card p-4 mb-4 shadow-sm">
-      <input type="file" class="form-control mb-3" @change="handleFiles" />
+    <div class="card module-card p-4 mb-4 shadow-sm text-center">
+      <input type="file" class="form-control mb-3 file-input" @change="handleFiles" />
+      <p class="file-name" v-if="files.length">{{ files[0].name }}</p>
       <button class="btn btn-primary w-100" @click="uploadPcap">上传并分析</button>
     </div>
 
     <!-- 状态提示 -->
-    <div class="card module-card p-3 mb-4 text-start" v-if="isUploading || isExtracting">
+    <div class="card module-card p-3 mb-4 text-center" v-if="isUploading || isExtracting">
       <p class="mb-0 text-info" v-if="isUploading">文件上传中，请稍候...</p>
       <p class="mb-0 text-info" v-else-if="isExtracting">正在提取特征并推理，请稍候...</p>
     </div>
@@ -17,13 +18,21 @@
     <!-- 饼图与统计报告并列 -->
     <div class="row g-4 mb-4" v-if="labelStats.total > 0">
       <div class="col-md-6">
-        <div class="card module-card p-3 h-100">
+        <div class="card module-card p-3 h-100 text-center">
           <h5 class="card-title">各类别比例</h5>
-          <canvas id="pieChart" height="160"></canvas>
+          <canvas id="pieChart" class="pie-chart-canvas mb-2"></canvas>
+          <div class="legend-container">
+            <ul class="legend-list">
+              <li v-for="(item, index) in sortedLabelCounts" :key="index" :style="{ color: colorPalette[index % colorPalette.length] }">
+                <span class="legend-color" :style="{ backgroundColor: colorPalette[index % colorPalette.length] }"></span>
+                {{ item.label }}
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
       <div class="col-md-6">
-        <div class="card module-card p-3 h-100 text-start">
+        <div class="card module-card p-3 h-100 text-center">
           <h5 class="card-title">各类别流量统计</h5>
           <ul class="list-group list-group-flush">
             <li class="list-group-item d-flex justify-content-between" v-for="item in sortedLabelCounts" :key="item.label">
@@ -36,7 +45,7 @@
     </div>
 
     <!-- 表格卡片 -->
-    <div class="card module-card p-3 mb-4" v-if="nistDisplayResults.length">
+    <div class="card module-card p-3 mb-4 text-center" v-if="nistDisplayResults.length">
       <h5 class="card-title">NIST 测试结果（前30条流）</h5>
       <div class="table-responsive">
         <table class="table table-bordered table-sm text-center mb-0">
@@ -72,6 +81,7 @@
 import Chart from 'chart.js/auto'
 
 export default {
+  name: 'UploadView',
   data() {
     return {
       files: [],
@@ -92,6 +102,11 @@ export default {
         "Bot", "DoS_Hulk", "DoS-Slowhttptest", "DoS-slowloris", "DDos",
         "FTP-Patator", "PortScan", "SSH-Patator", "Cridex", "Geodo", "Htbot",
         "Miuref", "Neris", "Nsis-ay", "Shifu", "Tinba", "Virut", "Zeus"
+      ],
+      colorPalette: [
+        '#4CAF50', '#FF5722', '#3F51B5', '#FFC107', '#E91E63',
+        '#00BCD4', '#8BC34A', '#9C27B0', '#795548', '#FF9800',
+        '#607D8B', '#CDDC39', '#009688', '#F44336'
       ]
     }
   },
@@ -135,18 +150,14 @@ export default {
         }, extractDelay)
       }, uploadDelay)
     },
-
     generateFakeNistResults() {
-      const total = Math.floor(Math.random() * 301) + 200  // 200~500
-      const benignPercent = Math.random() * 0.1 + 0.3  // 30%~40%
+      const total = Math.floor(Math.random() * 301) + 200
+      const benignPercent = Math.random() * 0.1 + 0.3
       const benignCount = Math.floor(total * benignPercent)
-
-      const numLabels = Math.floor(Math.random() * 6) + 9  // 9~14
-      const attackLabels = this.sampleArray(this.attackLabelList, numLabels - 1)  // 保留1个位置给 Benign
-
-      const labelList = ['Benign', ...attackLabels]
-      const labelCounts = {}
+      const numLabels = Math.floor(Math.random() * 6) + 9
+      const attackLabels = this.sampleArray(this.attackLabelList, numLabels - 1)
       const all = []
+      const labelCounts = {}
 
       for (let i = 0; i < total; i++) {
         const isBenign = i < benignCount
@@ -172,10 +183,8 @@ export default {
         labelCounts
       }
     },
-
     sampleArray(array, count) {
-      const shuffled = [...array].sort(() => 0.5 - Math.random())
-      return shuffled.slice(0, count)
+      return [...array].sort(() => 0.5 - Math.random()).slice(0, count)
     },
     randIP() {
       return Array.from({ length: 4 }, () => Math.floor(Math.random() * 256)).join('.')
@@ -183,39 +192,45 @@ export default {
     randPort() {
       return Math.floor(Math.random() * 64512) + 1024
     },
-    
     drawCharts() {
       this.$nextTick(() => {
         if (this.pieChart) this.pieChart.destroy()
-        const pieCtx = document.getElementById('pieChart')
-
+        const ctx = document.getElementById('pieChart')
         const labels = this.sortedLabelCounts.map(item => item.label)
         const counts = this.sortedLabelCounts.map(item => item.count)
 
-        const colorPalette = [
-          '#4CAF50', '#FF5722', '#3F51B5', '#FFC107', '#E91E63',
-          '#00BCD4', '#8BC34A', '#9C27B0', '#795548', '#FF9800',
-          '#607D8B', '#CDDC39', '#009688', '#F44336'
-        ]
-
-        this.pieChart = new Chart(pieCtx, {
+        this.pieChart = new Chart(ctx, {
           type: 'pie',
           data: {
             labels,
             datasets: [{
               data: counts,
-              backgroundColor: colorPalette.slice(0, labels.length)
+              backgroundColor: this.colorPalette.slice(0, labels.length),
+              hoverOffset: 20
             }]
           },
           options: {
+            responsive: true,
+            animation: {
+              animateRotate: true,
+              animateScale: true
+            },
             plugins: {
-              legend: { position: 'bottom' }
+              legend: {
+                display: false
+              },
+              tooltip: {
+                callbacks: {
+                  label: context => {
+                    return `${context.label}: ${context.parsed} 条`
+                  }
+                }
+              }
             }
           }
         })
       })
     },
-
     downloadNistCSV() {
       const headers = ['Flow ID', ...this.nistTestNames, 'Label']
       const rows = this.nistFullResults.map(item => {
@@ -230,8 +245,8 @@ export default {
       const csv = '\uFEFF' + headers.join(',') + '\n' + rows.map(r => r.join(',')).join('\n')
       this.saveCsvFile(csv, 'inference_summary.csv')
     },
-    saveCsvFile(csvContent, filename) {
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    saveCsvFile(content, filename) {
+      const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' })
       const link = document.createElement('a')
       link.href = URL.createObjectURL(blob)
       link.setAttribute('download', filename)
@@ -261,6 +276,10 @@ export default {
   border: 1px solid #e0e0e0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
+.pie-chart-canvas {
+  max-height: 300px;
+  margin-bottom: 10px;
+}
 .table th, .table td {
   font-size: 13px;
   text-align: center;
@@ -272,7 +291,34 @@ export default {
 .card-title {
   font-size: 18px;
   font-weight: 600;
-  text-align: center;
+  margin-bottom: 10px;
+}
+.legend-container {
+  margin-top: 10px;
+}
+.legend-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.legend-list li {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+}
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+.file-name {
+  font-size: 14px;
+  color: #444;
   margin-bottom: 10px;
 }
 </style>
