@@ -4,67 +4,73 @@ export const useListenStore = defineStore('listen', {
   state: () => ({
     isRunning: false,
     dataList: [],
-    attackHistory: Array(30).fill(0),  // 初始为 30 个 0，确保图表初始化有数据
-    timer: null,
-    timeout: null
+    attackHistory: [],
+    timer: null
   }),
+
   actions: {
     start() {
-      if (this.isRunning) return
+      if (this.timer) return
       this.isRunning = true
-      this.dataList = []               // 每次监听清空旧数据
-      this.attackHistory = Array(30).fill(0)
-      this.simulateTraffic()
-      this.startChartUpdate()
-    },
-    stop() {
-      this.isRunning = false
-      clearInterval(this.timer)
-      clearTimeout(this.timeout)
-    },
-    addData(data) {
-      this.dataList.push(data)
-      if (this.dataList.length > 200) this.dataList.shift()
-    },
-    simulateTraffic() {
-      if (!this.isRunning) return
-      const count = Math.floor(Math.random() * 6) + 3
-      for (let i = 0; i < count; i++) {
-        const now = new Date()
-        this.addData({
-          time: now.toLocaleTimeString(),
-          timestamp: now.getTime(),
-          src_ip: this.randomPublicIP(),
-          dst_ip: '192.168.3.164',
-          src_port: this.randomPort(),
-          dst_port: 8888,
-          label: this.generateLabel(),
-          confidence: parseFloat((Math.random() * 0.3 + 0.7).toFixed(3))
-        })
-      }
-      const delay = Math.floor(Math.random() * 700) + 800
-      this.timeout = setTimeout(this.simulateTraffic, delay)
-    },
-    startChartUpdate() {
-      this.timer = setInterval(() => {
-        const now = Date.now()
-        const recentAttacks = this.dataList.filter(
-          d => d.label !== 'Benign' && now - d.timestamp <= 3000
-        ).length
 
-        this.attackHistory = [...this.attackHistory.slice(-29), recentAttacks]  // ✅ 保持数据流一致
+      this.timer = setInterval(() => {
+        const timestamp = this.getBeijingTime()
+        const isAttack = Math.random() < 0.015  // 异常率控制约 1.5%
+
+        const sample = {
+          time: timestamp,
+          src_ip: this.randomIp(),
+          src_port: this.randomPort(),
+          dst_ip: '10.30.247.240',
+          dst_port: 443,
+          label: isAttack ? 'PortScan' : 'Benign',
+          confidence: isAttack
+            ? (Math.random() * 0.15 + 0.8)     // 攻击置信度 0.80–0.95
+            : (Math.random() * 0.1 + 0.85)     // 正常置信度 0.85–0.95
+        }
+
+        this.dataList.push(sample)
+
+        // 更新图表（最多保留30条）
+        if (this.attackHistory.length >= 30) this.attackHistory.shift()
+        this.attackHistory.push(isAttack ? 1 : 0)
       }, 1000)
     },
 
+    stop() {
+      if (this.timer) {
+        clearInterval(this.timer)
+        this.timer = null
+      }
+      this.isRunning = false
+    },
+
+    // 获取中国北京时间（UTC+8）
+    getBeijingTime() {
+      const now = new Date()
+      const delaySec = this.rand(6, 10)                    // 模拟监听延迟
+      const offsetMs = (8 * 60 * 60 - delaySec) * 1000     // 北京时间减去延迟秒数
+      const beijingTime = new Date(now.getTime() + offsetMs)
+
+      return beijingTime.getFullYear() + '-' +
+            String(beijingTime.getMonth() + 1).padStart(2, '0') + '-' +
+            String(beijingTime.getDate()).padStart(2, '0') + ' ' +
+            String(beijingTime.getHours()).padStart(2, '0') + ':' +
+            String(beijingTime.getMinutes()).padStart(2, '0') + ':' +
+            String(beijingTime.getSeconds()).padStart(2, '0')
+    },
+
+
+    randomIp() {
+      return `${this.rand(10, 250)}.${this.rand(0, 255)}.${this.rand(0, 255)}.${this.rand(1, 254)}`
+    },
 
     randomPort() {
-      return Math.floor(49152 + Math.random() * (65535 - 49152))
+      return this.rand(1024, 65535)
     },
-    randomPublicIP() {
-      return `${Math.floor(1 + Math.random() * 223)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`
-    },
-    generateLabel() {
-      return Math.random() < 0.99 ? 'Benign' : ['Botnet', 'DoS', 'BruteForce', 'Infiltration'][Math.floor(Math.random() * 4)]
+
+    rand(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min
     }
   }
 })

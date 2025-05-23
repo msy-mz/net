@@ -23,7 +23,7 @@ const router = useRouter()
 const route = useRoute()
 
 const navs = [
-  { name: '上传分析', route: '/upload', icon: 'fas fa-upload' },
+  { name: '上传文件', route: '/upload', icon: 'fas fa-upload' },
   { name: '实时监听', route: '/monitor', icon: 'fas fa-signal' },
   { name: '用户管理', route: '/user', icon: 'fas fa-user-cog' }
 ]

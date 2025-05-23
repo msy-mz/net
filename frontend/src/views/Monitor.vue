@@ -60,7 +60,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, onActivated, onDeactivated, nextTick } from 'vue'
 import { useListenStore } from '@/stores/listenStore'
 import { saveAs } from 'file-saver'
 import { Chart, LineController, LineElement, PointElement, LinearScale, Title, CategoryScale } from 'chart.js'
@@ -100,20 +100,12 @@ const initChart = () => {
         plugins: {
           legend: {
             display: true,
-            labels: {
-              color: '#444',
-              font: { size: 13 }
-            }
+            labels: { color: '#444', font: { size: 13 } }
           }
         },
         scales: {
-          x: {
-            ticks: { color: '#666', font: { size: 12 } }
-          },
-          y: {
-            beginAtZero: true,
-            ticks: { color: '#666', stepSize: 1, font: { size: 12 } }
-          }
+          x: { ticks: { color: '#666', font: { size: 12 } } },
+          y: { beginAtZero: true, ticks: { color: '#666', stepSize: 1, font: { size: 12 } } }
         }
       }
     })
@@ -141,17 +133,27 @@ const startListening = () => {
 const stopListening = () => {
   store.stop()
   clearInterval(chartTimer)
+  chartTimer = null
 }
 
-// 安全时间处理函数
+onActivated(() => {
+  if (store.isRunning && !chartTimer) {
+    updateChartLoop()
+  }
+})
+
+onDeactivated(() => {
+  clearInterval(chartTimer)
+  chartTimer = null
+})
+
+// 显示真实时间
 const safeParseTime = (timestamp, fallback = '无效时间') => {
   try {
-    if (!timestamp || typeof timestamp !== 'string') return fallback
     const real = new Date(timestamp)
     if (isNaN(real.getTime())) return fallback
-    const offset = 5000 + Math.floor(Math.random() * 3000)
-    return new Date(real.getTime() - offset).toISOString().replace('T', ' ').slice(0, 19)
-  } catch (err) {
+    return real.toISOString().replace('T', ' ').slice(0, 19)
+  } catch {
     return fallback
   }
 }
@@ -183,10 +185,10 @@ const downloadCSV = () => {
     item.label,
     (item.confidence * 100).toFixed(2) + '%'
   ])
-  const csvContent = '\uFEFF' + [headers, ...rows].map(e => e.join(',')).join('\n')
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const infoRow = ['监听IP: 10.30.247.240', '监听端口: 443']
+  const csvContent = '\uFEFF' + [infoRow, headers, ...rows].map(e => e.join(',')).join('\n')
   const timestamp = new Date().toISOString().replace(/[:T]/g, '-').split('.')[0]
-  saveAs(blob, `realtime_log_${timestamp}.csv`)
+  saveAs(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }), `realtime_log_${timestamp}.csv`)
 }
 
 onMounted(() => {
@@ -196,78 +198,108 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   clearInterval(chartTimer)
+  chartTimer = null
 })
 </script>
 
 <style scoped>
 .monitor-wrapper {
-  max-width: 960px;
-  margin: 0 auto;
+  max-width: none;
+  width: 100%;
+  padding: 24px 48px;
+  box-sizing: border-box;
   text-align: center;
+  background-color: #fafafa;
 }
+
 .main-title {
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 600;
   color: #222;
-  margin-bottom: 6px;
+  margin-bottom: 20px;
 }
+
+.card-area,
+.summary-area,
+.table-container,
+.chart-area {
+  max-width: 1400px;
+  margin: 0 auto 32px auto;
+}
+
 .card-area {
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
-  padding: 28px;
+  padding: 32px;
 }
+
 .status-line {
-  font-size: 15px;
-  margin-bottom: 18px;
+  font-size: 16px;
+  margin-bottom: 20px;
   color: #555;
 }
+
 .status-line .active {
   color: #2e7d32;
 }
+
 .status-line .stopped {
   color: #d32f2f;
 }
+
 .status-line .starting {
   color: #f57c00;
 }
+
 .btn-group {
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 24px;
+  margin-top: 12px;
 }
+
 .summary-area {
-  margin-top: 20px;
-  font-size: 15px;
+  font-size: 16px;
   color: #444;
+  padding-top: 8px;
 }
+
 .table-container {
-  max-height: 380px;
+  max-height: 420px;
   overflow-y: auto;
+  overflow-x: auto;
   margin-top: 20px;
   border: 1px solid #eee;
-  border-radius: 8px;
+  border-radius: 10px;
+  background: #fff;
+  padding: 12px;
 }
+
 table {
   width: 100%;
   table-layout: fixed;
 }
+
 th, td {
   font-size: 14px;
   text-align: center;
   white-space: nowrap;
+  padding: 10px 4px;
 }
+
 .chart-title {
   text-align: center;
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 600;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   color: #333;
 }
+
 .chart-area {
   background: #fff;
-  border-radius: 10px;
-  padding: 20px;
+  border-radius: 12px;
+  padding: 28px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
 }
 </style>

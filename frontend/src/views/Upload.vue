@@ -132,8 +132,8 @@ export default {
       this.labelStats = { total: 0, normal: 0, abnormal: 0 }
       this.sortedLabelCounts = []
 
-      const uploadDelay = Math.floor(Math.random() * 1000) + 2000
-      const extractDelay = Math.floor(Math.random() * 1000) + 3000
+      const uploadDelay = Math.floor(Math.random() * 3000) + 3000
+      const extractDelay = Math.floor(Math.random() * 3000) + 5000
 
       setTimeout(() => {
         this.isUploading = false
