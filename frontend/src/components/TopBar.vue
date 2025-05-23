@@ -1,27 +1,27 @@
 <template>
-  <div class="topbar">
-    <h1 class="title">FT-IDNet++网络流量监测系统</h1>
+  <div class="topbar fixed-top shadow-sm d-flex align-items-center px-3">
+    <i class="fas fa-bars toggle-icon" @click="$emit('toggleSidebar')"></i>
+    <h5 class="m-0 text-center flex-grow-1 topbar-title">基于 FT-IDNet++ 的网络流量监测系统</h5>
+    <div style="width: 24px;"></div> <!-- 右侧占位防止标题偏左 -->
   </div>
 </template>
 
 <style scoped>
 .topbar {
+  height: 56px;
+  background: #fff;
+  z-index: 1030;
   width: 100%;
-  background-color: #f5f7fa; /*  浅灰白色背景 */
-  color: #2c3e50;            /*  深色字体 */
-  padding: 18px 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
-.title {
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  margin: 0;
-  font-family: "Segoe UI", "Microsoft YaHei", "Helvetica Neue", sans-serif;
-  text-shadow: none; /*  浅色背景下去掉阴影更清爽 */
+.toggle-icon {
+  font-size: 20px;
+  cursor: pointer;
+  color: #333;
+}
+
+.topbar-title {
+  font-size: 18px;
+  font-weight: bold;
 }
 </style>

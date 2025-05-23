@@ -1,28 +1,15 @@
+// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import Dashboard from '@/views/Dashboard.vue'
-import Monitor from '@/views/Monitor.vue'
 import Upload from '@/views/Upload.vue'
-import Visual from '@/views/Visual.vue'
-import Log from '@/views/Log.vue'
-import NistTest from '@/views/NistTest.vue'
-import User from '@/views/User.vue'  // 新增
-import Payload from '@/views/Payload.vue'  // 路径请根据实际情况调整
+import Monitor from '@/views/Monitor.vue'
+import User from '@/views/User.vue'
 
 const routes = [
-  { path: '/', component: Dashboard },
-  { path: '/monitor', component: Monitor },
-  { path: '/upload', component: Upload },
-  { path: '/visual', component: Visual },
-  { path: '/log', component: Log },
-  { path: '/nist-test', component: NistTest },
-  { path: '/user', component: User }, // 新增
-  { path: '/payload', name: 'Payload', component: Payload }
+  { path: '/', redirect: '/upload' },          //  启动页重定向到 /upload
+  { path: '/upload', component: Upload },      //  显式上传页
+  { path: '/monitor', component: Monitor },    //  添加监听页，防止空白
+  { path: '/user', component: User }           //  其他页面
 ]
-
-const router = createRouter({
-  history: createWebHistory(),
-  routes
-})
 
 export default createRouter({
   history: createWebHistory(),

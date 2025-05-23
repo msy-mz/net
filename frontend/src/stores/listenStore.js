@@ -24,7 +24,7 @@ export const useListenStore = defineStore('listen', {
     },
     addData(data) {
       this.dataList.push(data)
-      if (this.dataList.length > 50) this.dataList.shift()
+      if (this.dataList.length > 200) this.dataList.shift()
     },
     simulateTraffic() {
       if (!this.isRunning) return
@@ -48,16 +48,15 @@ export const useListenStore = defineStore('listen', {
     startChartUpdate() {
       this.timer = setInterval(() => {
         const now = Date.now()
-        const oneSecAgo = now - 1000
-        // 取最近 3 秒内的攻击数作为趋势近似值（更鲁棒）
         const recentAttacks = this.dataList.filter(
           d => d.label !== 'Benign' && now - d.timestamp <= 3000
         ).length
 
-        this.attackHistory.push(recentAttacks)
-        if (this.attackHistory.length > 30) this.attackHistory.shift()
+        this.attackHistory = [...this.attackHistory.slice(-29), recentAttacks]  // ✅ 保持数据流一致
       }, 1000)
     },
+
+
     randomPort() {
       return Math.floor(49152 + Math.random() * (65535 - 49152))
     },

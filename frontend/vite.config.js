@@ -1,19 +1,13 @@
-// Filename: vite.config.js
-// Path: frontend/vite.config.js
-// Description: Vite 构建配置，设置路径别名和代理，适配 Flask 部署
-// Author: msy
-// Date: 2025
-
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import path from 'path'  // 必须导入 path 模块
+import path from 'path'
 
 export default defineConfig({
-  base: './',  // 关键配置，确保构建资源路径为相对路径，适配 Flask 静态托管
+  base: './',
   plugins: [vue()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src')  // 配置 @ 指向 src 目录
+      '@': path.resolve(__dirname, 'src')
     }
   },
   server: {
@@ -22,6 +16,21 @@ export default defineConfig({
         target: 'http://localhost:8888',
         changeOrigin: true,
         rewrite: path => path.replace(/^\/api/, '/api')
+      }
+    }
+  },
+  build: {
+    chunkSizeWarningLimit: 700,  // 默认是 500KB，这里稍微放宽
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('chart.js')) return 'vendor-chart'
+            if (id.includes('fontawesome')) return 'vendor-fonts'
+            if (id.includes('bootstrap')) return 'vendor-bootstrap'
+            return 'vendor'  // 其余统一打包到 vendor
+          }
+        }
       }
     }
   }

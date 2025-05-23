@@ -5,8 +5,8 @@
 
     <div class="card-box">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <button class="btn btn-primary btn-sm">添加用户</button>
-        <button class="btn btn-outline-secondary btn-sm">角色权限设置</button>
+        <button class="btn btn-primary btn-sm" @click="openAddDialog">添加用户</button>
+        <button class="btn btn-outline-secondary btn-sm" @click="showRoleSetting">角色权限设置</button>
       </div>
 
       <div class="table-responsive">
@@ -22,7 +22,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="user in mockUsers" :key="user.id">
+            <tr v-for="user in store.users" :key="user.id">
               <td>{{ user.id }}</td>
               <td>{{ user.username }}</td>
               <td>{{ user.role }}</td>
@@ -33,25 +33,107 @@
                 </span>
               </td>
               <td>
-                <button class="btn btn-sm btn-outline-primary me-2">编辑</button>
-                <button class="btn btn-sm btn-outline-danger">删除</button>
+                <button class="btn btn-sm btn-outline-primary me-2" @click="edit(user)">编辑</button>
+                <button class="btn btn-sm btn-outline-danger me-2" @click="remove(user.id)">删除</button>
+                <button class="btn btn-sm btn-outline-warning" @click="resetPassword(user)">重置密码</button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-
-      <p class="note mt-3">提示：以上为模拟用户数据，功能接口尚未接入。</p>
     </div>
+
+    <!-- 用户编辑弹窗 -->
+    <el-dialog v-model="showEditDialog" :title="isNew ? '添加用户' : '编辑用户'" width="400px">
+      <el-form :model="editUser" label-width="80px">
+        <el-form-item label="用户名">
+          <el-input v-model="editUser.username" />
+        </el-form-item>
+        <el-form-item label="邮箱">
+          <el-input v-model="editUser.email" />
+        </el-form-item>
+        <el-form-item label="角色">
+          <el-select v-model="editUser.role" placeholder="选择角色">
+            <el-option label="超级管理员" value="超级管理员" />
+            <el-option label="普通用户" value="普通用户" />
+            <el-option label="访客" value="访客" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-switch v-model="editUser.active" active-text="启用" inactive-text="停用" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showEditDialog = false">取消</el-button>
+        <el-button type="primary" @click="saveUser">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-const mockUsers = [
-  { id: 1, username: 'admin', role: '超级管理员', email: 'admin@example.com', active: true },
-  { id: 2, username: 'user001', role: '普通用户', email: 'user001@example.com', active: true },
-  { id: 3, username: 'guest', role: '访客', email: 'guest@example.com', active: false }
-]
+import { ref } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { useUserStore } from '@/stores/userStore'
+
+const store = useUserStore()
+const showEditDialog = ref(false)
+const editUser = ref({})
+const isNew = ref(false)
+
+function openAddDialog() {
+  isNew.value = true
+  editUser.value = {
+    id: Date.now(),
+    username: '',
+    email: '',
+    role: '普通用户',
+    active: true
+  }
+  showEditDialog.value = true
+}
+
+function edit(user) {
+  isNew.value = false
+  editUser.value = { ...user }
+  showEditDialog.value = true
+}
+
+function saveUser() {
+  if (isNew.value) {
+    store.addUser({ ...editUser.value })
+    ElMessage.success('用户已添加')
+  } else {
+    store.updateUser({ ...editUser.value })
+    ElMessage.success('用户信息已更新')
+  }
+  showEditDialog.value = false
+}
+
+function remove(id) {
+  ElMessageBox.confirm('确认删除该用户吗？', '提示', {
+    confirmButtonText: '确认',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    store.deleteUser(id)
+    ElMessage.success('删除成功')
+  }).catch(() => {})
+}
+
+function resetPassword(user) {
+  ElMessageBox.confirm(`确认重置 ${user.username} 的密码？`, '提示', {
+    confirmButtonText: '确认',
+    cancelButtonText: '取消',
+    type: 'info'
+  }).then(() => {
+    ElMessage.success(`已重置 ${user.username} 的密码（模拟）`)
+  }).catch(() => {})
+}
+
+function showRoleSetting() {
+  ElMessage.info('角色权限设置功能尚未实现（示例占位）')
+}
 </script>
 
 <style scoped>
@@ -77,9 +159,5 @@ const mockUsers = [
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
   padding: 30px;
   text-align: left;
-}
-.note {
-  font-size: 13px;
-  color: #999;
 }
 </style>
