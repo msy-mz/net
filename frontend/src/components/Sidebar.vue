@@ -25,8 +25,10 @@ const route = useRoute()
 const navs = [
   { name: '上传文件', route: '/upload', icon: 'fas fa-upload' },
   { name: '实时监听', route: '/monitor', icon: 'fas fa-signal' },
+  { name: '频谱分析', route: '/spectrogram', icon: 'fas fa-chart-area' },  // ← 新增项
   { name: '用户管理', route: '/user', icon: 'fas fa-user-cog' }
 ]
+
 
 function navigate(routePath) {
   router.push(routePath)

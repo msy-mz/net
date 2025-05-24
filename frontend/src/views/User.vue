@@ -143,16 +143,18 @@ function showRoleSetting() {
   text-align: center;
 }
 .main-title {
-  font-size: 22px;
+  font-size: 1.75rem; /* 原为22px */
   font-weight: 600;
   color: #222;
   margin-bottom: 6px;
 }
+
 .desc {
-  font-size: 14px;
+  font-size: 1.1rem;  /* 原为14px */
   color: #888;
   margin-bottom: 24px;
 }
+
 .card-box {
   background: #ffffff;
   border-radius: 12px;
